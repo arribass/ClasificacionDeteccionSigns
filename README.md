@@ -4,4 +4,4 @@ En este proyecto vamos a elaborar mediante lo aprendido en Vision Artificial y A
 
 Las imagenes que soporta el clasificador son las siguientes:
 
-
+![alt text](resources/signs.png)
