@@ -17,3 +17,5 @@ Para clasificar las señales podemos usar diferentes estrategias:
 Estrategia deteccion:
 
 Algoritmo de ventana deslizante. Usaremos las imagenes de dataset/images
+
+En [csvs](csvs/)
