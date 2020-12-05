@@ -18,4 +18,4 @@ Para clasificar las señales podemos usar diferentes estrategias:
 
 Algoritmo de ventana deslizante. Usaremos las imagenes de dataset/images
 
-En la carpeta [csvs](csvs/) podemos encontrar 43 csvs que contienen los datos de las imagenes de [Dataset_traffic_sign](Dataset_traffic_sign/) procesador por el algoritmo HOG de sklearn. Mas informacion [aqui]([lins](https://www.learnopencv.com/histogram-of-oriented-gradients/))
+En la carpeta [csvs](csvs/) podemos encontrar 43 csvs que contienen los datos de las imagenes de [Dataset_traffic_sign](Dataset_traffic_sign/) procesador por el algoritmo HOG de sklearn. Mas informacion [aqui](https://www.learnopencv.com/histogram-of-oriented-gradients/)
