@@ -12,7 +12,8 @@ Utilizamos el algoritmo HOG para extraer las caracteristicas de nuestra imagen y
 
 Para clasificar las señales podemos usar diferentes estrategias:
 - SVMs (OVO&OVA)
-- Regresion lineal multiclase etc
+- Clasificador Naive Bayes
+- Regresion logistica multiclase etc
 
 ## Estrategia deteccion:
 
