@@ -10,7 +10,7 @@ Las señales que soporta el clasificador son las siguientes:
 
 En la carpeta [csvs](csvs/) podemos encontrar 43 csvs que contienen los datos de las imagenes de [Dataset_traffic_sign](Dataset_traffic_sign/) procesadas por el algoritmo HOG de opencv. Mas informacion [aqui](https://www.learnopencv.com/histogram-of-oriented-gradients/)
 
-Utilizamos este algoritmo para crear los datos de cada clase y posteriormente crear otros 2 conjuntos de datos train y test para entrenar y probar clasificadores.
+Utilizamos este algoritmo para crear los datos de cada clase y posteriormente crear otros 2 conjuntos de datos [train](train_img_features.npy) y [test](test_img_features.npy) para entrenar y probar clasificadores.
 
 Para clasificar las señales usaremos:
 - SVMs (OVO&OVA)
