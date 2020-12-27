@@ -17,6 +17,8 @@ Para clasificar las señales usaremos:
 - Naive Bayes
 - Regresion logistica multiclase
 
+Todos ellos de las librerias de [sklearn](https://scikit-learn.org/stable/)
+
 A partir de cada clasificador hemos conseguido los siguientes resultados:
 
 ## Sin preprocesamiento
@@ -28,7 +30,6 @@ Hemos entrenado 2 modelos de Naive Bayes: gaussiano y multiclase. Los resultados
 from sklearn.naive_bayes import GaussianNB
 clf = GaussianNB()
 clf.fit(Xtrain, ytrain)
-
 
 ypred = clf.predict(Xtest)
 accuracyGaussianNB = round(metrics.accuracy_score(ypred,ytest)*100,2)
@@ -48,10 +49,36 @@ print('La precision es {}'.format(accuracyMNB))
 >>>La precision es 77.31
 ```
 
+Apenas hay diferencia de precision entre ambos clasificadores por lo que ambos nos servirian igualmente.
 ### SVMs
-### Regresion logistica
+```
+from sklearn import svm
+clf_SVM = svm.SVC()
+clf_SVM.fit(Xtrain, ytrain)
 
+ypred = clf_SVM.predict(Xtest)
+accuracySVM = round(metrics.accuracy_score(ypred,ytest)*100,2)
+print('La precision es {}'.format(accuracySVM))
+
+>>>La precision es 85.49
+```
+En el caso de las SVMs hemos probado tanto OVO como OVA y hemos obtenido los mismos resultados. Hay mejora con respecto a Naive Bayes pero aun se puede mejorar mas.
+### Regresion logistica
+```
+from sklearn.linear_model import LogisticRegression
+clfLogRegr = LogisticRegression(random_state=0,max_iter=300).fit(Xtrain, ytrain)
+
+ypred = clfLogRegr.predict(Xtest)
+accuracyLogReg = round(metrics.accuracy_score(ypred,ytest)*100,2)
+print('La precision es {}'.format(accuracyLogReg))
+
+>>>La precision es 92.61
+```
+En regresión logistica es donde hemos obtenido el mayor porcentaje de acierto en la deteccion por lo que nos quedaremos con este clasificador para las demas partes del trabajo.
 ## Con preprocesamiento
+
+Antes de ver los resultados con preprocesamiento vamos a mostrar cual es el procedimiento que hemos seguido.
+
 
 ### Bayes
 
