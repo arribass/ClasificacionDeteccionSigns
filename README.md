@@ -35,7 +35,7 @@ ypred = clf.predict(Xtest)
 accuracyGaussianNB = round(metrics.accuracy_score(ypred,ytest)*100,2)
 print('La precision es {}'.format(accuracyGaussianNB))
 
->>>La precision es 78.1
+>>>La precision es 74.93
 ```
 ```
 from sklearn.naive_bayes import MultinomialNB
@@ -46,7 +46,7 @@ ypred = clf.predict(Xtest)
 accuracyMNB = round(metrics.accuracy_score(ypred,ytest)*100,2)
 print('La precision es {}'.format(accuracyMNB))
 
->>>La precision es 77.31
+>>>La precision es 78.89
 ```
 
 Apenas hay diferencia de precision entre ambos clasificadores por lo que ambos nos servirian igualmente.
@@ -60,7 +60,7 @@ ypred = clf_SVM.predict(Xtest)
 accuracySVM = round(metrics.accuracy_score(ypred,ytest)*100,2)
 print('La precision es {}'.format(accuracySVM))
 
->>>La precision es 85.49
+>>>La precision es 87.34
 ```
 En el caso de las SVMs hemos probado tanto OVO como OVA y hemos obtenido los mismos resultados. Hay mejora con respecto a Naive Bayes pero aun se puede mejorar mas.
 ### Regresion logistica
@@ -72,9 +72,11 @@ ypred = clfLogRegr.predict(Xtest)
 accuracyLogReg = round(metrics.accuracy_score(ypred,ytest)*100,2)
 print('La precision es {}'.format(accuracyLogReg))
 
->>>La precision es 92.61
+>>>La precision es 94.46
 ```
-En regresión logistica es donde hemos obtenido el mayor porcentaje de acierto en la deteccion por lo que nos quedaremos con este clasificador para las demas partes del trabajo.
+En regresión logistica es donde hemos obtenido el mayor porcentaje de acierto en la clasificacion por lo que nos quedaremos con este clasificador para las demas partes del trabajo.
+
+Es importante resaltar que estas precisiones depende también de como se hayan mezclado los conjuntos de train y test. En nuestro caso hemos utilizado una semilla para fijar los resultados pero podrian variar. En cualquier caso hemos realizado pruebas y la regresión logistica sigue dando los mejores resultados.
 ## Con preprocesamiento
 
 Antes de ver los resultados con preprocesamiento vamos a mostrar cual es el procedimiento que hemos seguido.
