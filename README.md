@@ -19,11 +19,45 @@ Para clasificar las señales usaremos:
 
 A partir de cada clasificador hemos conseguido los siguientes resultados:
 
+## Sin preprocesamiento
+
 ### Bayes
 
-### Regresion logistica
+Hemos entrenado 2 modelos de Naive Bayes: gaussiano y multiclase. Los resultados han sido los siguientes:
+```
+from sklearn.naive_bayes import GaussianNB
+clf = GaussianNB()
+clf.fit(Xtrain, ytrain)
+
+
+ypred = clf.predict(Xtest)
+accuracyGaussianNB = round(metrics.accuracy_score(ypred,ytest)*100,2)
+print('La precision es {}'.format(accuracyGaussianNB))
+
+>>>La precision es 78.1
+```
+```
+from sklearn.naive_bayes import MultinomialNB
+clf = MultinomialNB()
+clf.fit(Xtrain,ytrain)
+
+ypred = clf.predict(Xtest)
+accuracyMNB = round(metrics.accuracy_score(ypred,ytest)*100,2)
+print('La precision es {}'.format(accuracyMNB))
+
+>>>La precision es 77.31
+```
 
 ### SVMs
+### Regresion logistica
+
+## Con preprocesamiento
+
+### Bayes
+
+### SVMs
+
+### Regresion logistica
 ## Estrategia deteccion:
 
 Algoritmo de ventana deslizante. Usaremos las imagenes de dataset/images
