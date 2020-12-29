@@ -114,6 +114,11 @@ for i,(clf,name) in enumerate(zip(classifiers,clf_names)):
 ```
 
 Para las SVM usamos GridSearchCV para ajustar los parametros y obtener la mejor puntuación posible. Importante resaltar tambien el parametro cv que hemos tenido que ajustar 'cv = 2' ya que para determinadas clases no habia suficientes ejemplos y no se podía realizar la validación cruzada.
+
+Estos han sido los resultados.
+
+![alt text](resources/resultados.png)
+
 ## Con preprocesamiento
 
 Antes de ver los resultados con preprocesamiento vamos a mostrar cual es el procedimiento que hemos seguido.
