@@ -117,6 +117,7 @@ Para las SVM usamos GridSearchCV para ajustar los parametros y obtener la mejor 
 
 Estos han sido los resultados.
 
+
 ![alt text](resources/resultados.png)
 
 ## Con preprocesamiento
