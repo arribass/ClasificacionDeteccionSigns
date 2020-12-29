@@ -18,6 +18,7 @@ Para clasificar las señales usaremos:
 - Regresion logistica multiclase
 
 Todos ellos de las librerias de [sklearn](https://scikit-learn.org/stable/)
+### Algoritmo HOG
 
 A partir de cada clasificador hemos conseguido los siguientes resultados:
 
@@ -77,6 +78,42 @@ print('La precision es {}'.format(accuracyLogReg))
 En regresión logistica es donde hemos obtenido el mayor porcentaje de acierto en la clasificacion por lo que nos quedaremos con este clasificador para las demas partes del trabajo.
 
 Es importante resaltar que estas precisiones depende también de como se hayan mezclado los conjuntos de train y test. En nuestro caso hemos utilizado una semilla(2020) para fijar los resultados pero podrian variar. En cualquier caso hemos realizado pruebas y la regresión logistica sigue dando los mejores resultados.
+
+Probamos a definir un conjunto de clasificadores y entrenarlos para quedarnos con el mejor resultado. El codigo es el siguiente:
+
+```
+from sklearn.svm import SVC
+from sklearn.linear_model import LogisticRegression
+from sklearn.naive_bayes import GaussianNB
+from sklearn.model_selection import GridSearchCV
+
+import matplotlib.pyplot as plt
+#Definimos un conjunto de clasificadores
+classifiers = [
+    SVC(kernel="linear", C=0.025),
+    SVC(gamma=1, C=1),
+    LogisticRegression(random_state=0,max_iter=400),
+    GaussianNB()]
+
+clf_names = ['SVM Lineal', 'SVM Gaussiana', 'Regr logistica', 'NB gaussiano']
+
+#Probamos los clasificadores
+score_list = []
+Best_score = np.NINF
+for i,(clf,name) in enumerate(zip(classifiers,clf_names)):
+    print('Entrenando {}'.format(name))
+    if name == 'SVM Gaussiana':
+        parameters = {'gamma':[0.1,0.001,0.0001], 'C':[1, 10,100,1000]}
+        clf = GridSearchCV(clf,parameters,cv = 2)
+    clf.fit(Xtrain,ytrain)
+    score = clf.score(Xtest,ytest)*100
+    score_list.append(score)
+    if score > Best_score:
+        Best_score = score
+        Best_clf = i 
+```
+
+Para las SVM usamos GridSearchCV para ajustar los parametros y obtener la mejor puntuación posible. Importante resaltar tambien el parametro cv que hemos tenido que ajustar 'cv = 2' ya que para determinadas clases no habia suficientes ejemplos y no se podía realizar la validación cruzada.
 ## Con preprocesamiento
 
 Antes de ver los resultados con preprocesamiento vamos a mostrar cual es el procedimiento que hemos seguido.
@@ -89,4 +126,5 @@ Antes de ver los resultados con preprocesamiento vamos a mostrar cual es el proc
 ### Regresion logistica
 ## Estrategia deteccion:
 
-Algoritmo de ventana deslizante. Usaremos las imagenes de dataset/images
+Algoritmo de ventana deslizante. Usaremos las imagenes de [dataset/images](dataset/images)
+
