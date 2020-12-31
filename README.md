@@ -22,115 +22,96 @@ Todos ellos de las librerias de [sklearn](https://scikit-learn.org/stable/)
 
 A partir de cada clasificador hemos conseguido los siguientes resultados:
 
-## Sin preprocesamiento
 
-### Bayes
 
-Hemos entrenado 2 modelos de Naive Bayes: gaussiano y multiclase. Los resultados han sido los siguientes:
-```
-from sklearn.naive_bayes import GaussianNB
-clf = GaussianNB()
-clf.fit(Xtrain, ytrain)
-
-ypred = clf.predict(Xtest)
-accuracyGaussianNB = round(metrics.accuracy_score(ypred,ytest)*100,2)
-print('La precision es {}'.format(accuracyGaussianNB))
-
->>>La precision es 74.93
-```
-```
-from sklearn.naive_bayes import MultinomialNB
-clf = MultinomialNB()
-clf.fit(Xtrain,ytrain)
-
-ypred = clf.predict(Xtest)
-accuracyMNB = round(metrics.accuracy_score(ypred,ytest)*100,2)
-print('La precision es {}'.format(accuracyMNB))
-
->>>La precision es 78.89
-```
-
-Apenas hay diferencia de precision entre ambos clasificadores por lo que ambos nos servirian igualmente.
-### SVMs
-```
-from sklearn import svm
-clf_SVM = svm.SVC()
-clf_SVM.fit(Xtrain, ytrain)
-
-ypred = clf_SVM.predict(Xtest)
-accuracySVM = round(metrics.accuracy_score(ypred,ytest)*100,2)
-print('La precision es {}'.format(accuracySVM))
-
->>>La precision es 87.34
-```
-En el caso de las SVMs hemos probado tanto OVO como OVA y hemos obtenido los mismos resultados. Hay mejora con respecto a Naive Bayes pero aun se puede mejorar mas.
-### Regresion logistica
-```
-from sklearn.linear_model import LogisticRegression
-clfLogRegr = LogisticRegression(random_state=0,max_iter=300).fit(Xtrain, ytrain)
-
-ypred = clfLogRegr.predict(Xtest)
-accuracyLogReg = round(metrics.accuracy_score(ypred,ytest)*100,2)
-print('La precision es {}'.format(accuracyLogReg))
-
->>>La precision es 94.46
-```
-En regresión logistica es donde hemos obtenido el mayor porcentaje de acierto en la clasificacion por lo que nos quedaremos con este clasificador para las demas partes del trabajo.
-
-Es importante resaltar que estas precisiones depende también de como se hayan mezclado los conjuntos de train y test. En nuestro caso hemos utilizado una semilla(2020) para fijar los resultados pero podrian variar. En cualquier caso hemos realizado pruebas y la regresión logistica sigue dando los mejores resultados.
-
-Probamos a definir un conjunto de clasificadores y entrenarlos para quedarnos con el mejor resultado. El codigo es el siguiente:
+Hemos probado a definir un conjunto de clasificadores y entrenarlos para quedarnos con el mejor resultado. El codigo es el siguiente:
+Para ello tambien hemos usado GridSearchCV para obtener el mejor ajuste de los paremtros de los clasificadores
 
 ```
-from sklearn.svm import SVC
-from sklearn.linear_model import LogisticRegression
-from sklearn.naive_bayes import GaussianNB
-from sklearn.model_selection import GridSearchCV
+nombresDatasets = ['non_processed','processed']
+datasets = {}
 
-import matplotlib.pyplot as plt
+for nombre in nombresDatasets:
+    pathTrain = 'train_img_features_'+nombre+'.npy'
+    pathTest = 'test_img_features_'+nombre+'.npy'
+    
+    dataTrain = np.load(pathTrain)
+    Xtrain = dataTrain[:,:-1]
+    ytrain = dataTrain[:,-1]
+    
+    dataTest = np.load(pathTest)
+    Xtest = dataTest[:,:-1]
+    ytest = dataTest[:,-1]
+    
+    datasets[nombre] = (Xtrain,ytrain,Xtest,ytest)
+
 #Definimos un conjunto de clasificadores
 classifiers = [
-    SVC(kernel="linear", C=0.025),
-    SVC(gamma=1, C=1),
+    SVC(),
     LogisticRegression(random_state=0,max_iter=400),
-    GaussianNB()]
+    GaussianNB(),
+    DecisionTreeClassifier(),
+    MLPClassifier()]
 
-clf_names = ['SVM Lineal', 'SVM Gaussiana', 'Regr logistica', 'NB gaussiano']
+clf_names = ['SVM', 'Regr Logistica', 'NB Gaussiano','Decision Tree','Red Neuronal']
 
-#Probamos los clasificadores
 score_list = []
+time_list = []
+aux_params = []
 Best_score = np.NINF
-for i,(clf,name) in enumerate(zip(classifiers,clf_names)):
-    print('Entrenando {}'.format(name))
-    if name == 'SVM Gaussiana':
-        parameters = {'gamma':[0.1,0.001,0.0001], 'C':[1, 10,100,1000]}
-        clf = GridSearchCV(clf,parameters,cv = 2)
-    clf.fit(Xtrain,ytrain)
-    score = clf.score(Xtest,ytest)*100
-    score_list.append(score)
-    if score > Best_score:
-        Best_score = score
-        Best_clf = i 
+
+#Definimos un diccionario con diccionarios para los parametergrids de GridSearchCV
+parameters_dict = {'SVM':{'kernel':('linear', 'rbf'), 'C':[1, 10],'gamma':[0.1,0.001]},
+                    'Regr Logistica':{'C': [0.01, 1, 10, 1000] },
+                    'NB Gaussiano':{'var_smoothing': np.logspace(0,-9, num=10)},
+                    'Decision Tree':{'min_samples_split': [2, 3, 4],
+                                     'criterion': ['gini', 'entropy']},
+                    'Red Neuronal':{'activation': ['tanh', 'relu'],
+                                    'solver': ['sgd', 'adam']}
+                   }
+#Probamos los clasificadores
+for i,(clf_aux,clf_name) in enumerate(zip(classifiers,clf_names)):
+    for j,dataset in enumerate(nombresDatasets):
+        #Clonamos el clasificador ya que lo vamos a usar 2 veces
+        clf = clone(clf_aux)
+        
+        #Extraemos los datos de train y test
+        print('Entrenando {} con {}'.format(dataset,clf_name))
+        (Xtrain,ytrain,Xtest,ytest) = datasets[dataset]
+        
+        #Calculamos los parametros optimos con GridSearchCV
+        t0 = time.time()
+        clf = GridSearchCV(clf,parameters_dict[clf_name],cv = 2,n_jobs=-1)
+        clf.fit(Xtrain,ytrain)
+        t1 = time.time()
+        time_list.append(round(t1-t0),2)
+        
+        #Calculamos la precision, la guardamos y vemos si hemos mejorado
+        score = round(clf.score(Xtest,ytest)*100,2)
+        score_list.append(score)
+        aux_params.append(clf.best_params_)
+
+        if score >= Best_score:
+            Best_score = score
+            Best_dataset = dataset
+            Best_clf = clf
+            nBest_clf = i*2 +j
+        print('Time elapsed on fit: {}\n'.format(round(t1-t0,2)))
+print('Total time elapsed {}'.format(round(np.sum(time_list),2)))
 ```
+Importante resaltar tambien el parametro cv que hemos tenido que ajustar 'cv = 2' ya que para determinadas clases no habia suficientes ejemplos y no se podía realizar la validación cruzada.
 
-Para las SVM usamos GridSearchCV para ajustar los parametros y obtener la mejor puntuación posible. Importante resaltar tambien el parametro cv que hemos tenido que ajustar 'cv = 2' ya que para determinadas clases no habia suficientes ejemplos y no se podía realizar la validación cruzada.
-
-Estos han sido los resultados.
-
+Estos han sido los resultados tanto de precision como de tiempo de entrenamiento de los clasificadores
 
 ![alt text](resources/resultados.png)
+![alt text](resources/resultados2.png)
 
-## Con preprocesamiento
-
-Antes de ver los resultados con preprocesamiento vamos a mostrar cual es el procedimiento que hemos seguido.
-
-
-### Bayes
-
-### SVMs
-
-### Regresion logistica
+Hemos tomado mejor clasificador finalmente MLPClassifier con los siguientes parametros
 ## Estrategia deteccion:
 
-Algoritmo de ventana deslizante. Usaremos las imagenes de [dataset/images](dataset/images)
+A partir de las imagenes en [dataset_images](dataset/images) hemos creado otro dataset: [dataset_cropped_images](dataset/images) con imagenes de tamaño 100x100 para entrenar otro clasificador que nos determine si dicha imagen es o no una señal
 
+Posteriormente con el clasificador ya entrenado vamos a aplicar un algoritmo de ventana deslizante. Usaremos las imagenes completas de [dataset_images](dataset/images)
+
+
+## Deteccion y clasificacion 
