@@ -13,9 +13,11 @@ En la carpeta [csvs](csvs/) podemos encontrar 43 csvs que contienen los datos de
 Utilizamos este algoritmo para crear los datos de cada clase y posteriormente crear otros 2 conjuntos de datos [train](train_img_features.npy) y [test](test_img_features.npy) para entrenar y probar clasificadores.
 
 Para clasificar las señales usaremos:
-- SVMs (OVO&OVA)
+- SVMs
 - Naive Bayes
 - Regresion logistica multiclase
+- Decision tree
+- Red Neuronal (MLPClassifier)
 
 Todos ellos de las librerias de [sklearn](https://scikit-learn.org/stable/)
 ### Algoritmo HOG
@@ -106,7 +108,8 @@ Estos han sido los resultados tanto de precision como de tiempo de entrenamiento
 ![alt text](resources/resultados.png)
 ![alt text](resources/resultados2.png)
 
-Hemos tomado mejor clasificador finalmente MLPClassifier con los siguientes parametros
+Hemos tomado mejor clasificador finalmente MLPClassifier con los siguientes parametros y lo guardamos en nuestro repositorio usando [pickle](https://docs.python.org/3/library/pickle.html) de este esta manera tenemos el objeto estimador guardado en disco sin necesidad de tener que volver a crear los datasets,entrenar y calcular el mejor.
+
 ## Estrategia deteccion:
 
 A partir de las imagenes en [dataset_images](dataset/images) hemos creado otro dataset: [dataset_cropped_images](dataset/images) con imagenes de tamaño 100x100 para entrenar otro clasificador que nos determine si dicha imagen es o no una señal
