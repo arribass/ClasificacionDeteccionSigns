@@ -68,13 +68,60 @@ Lo guardamos en nuestro repositorio usando [pickle](https://docs.python.org/3/li
 
 A partir de las imagenes en [dataset_images](dataset/images) hemos creado otro dataset: [dataset_cropped_images](dataset/images) con imagenes de tamaño 100x100 para entrenar otro clasificador que nos determine si dicha imagen es o no una señal
 
-Posteriormente con el clasificador ya entrenado vamos a aplicar un algoritmo de ventana deslizante. Usaremos las imagenes completas de [dataset_images](dataset/images). 
+Posteriormente con el clasificador ya entrenado vamos a aplicar un algoritmo de ventana deslizante junto a una piramide gaussiana. Usaremos las imagenes completas de [dataset_images](dataset/images). 
 
-De primeras entrenamos una SVM que nos ofrecia bastantes buenos resultados y nos detectaba las señales con precisión pero nos dimos cuenta de que nos podía detectar una misma señal multiples veces al aplicar la ventana deslizante. Por ello decidimos aplicar Non-Maximum Supression para eliminar las detecciones multiples, para ello cambiamos el modelo de detección por un clasificador probabilístico que nos permitiera quedarnos con las ventanas con mayor probabilidad de su clase señal. Finalmente nos hemos quedado con un MLP-Classifier de Sklearn.
+De primeras entrenamos una SVM que nos ofrecia bastantes buenos resultados y nos detectaba las señales con precisión pero nos dimos cuenta de que nos podía detectar una misma señal multiples veces al aplicar la ventana deslizante. Por ello decidimos aplicar Non-Maximum Supression para eliminar las detecciones multiples, para ello cambiamos el modelo de detección por un clasificador probabilístico que nos permitiera quedarnos con las ventanas con mayor probabilidad de su clase señal. Finalmente nos hemos quedado con un clasificador multinomial Naive Bayes de Sklearn.
+
+## Pirámide gaussiana + ventana deslizante
+
+Debido a la necesidad de barrer toda la imagen en busca de señales hemos hecho uso de una función de ventana deslizante, que dada una imagen va moviendo una ventana de tamaño 100x100 por la imagen.
+
+Ahora bien, un problema que surge es que haya en la foto una señal tan grande como para que no sea detectada con esas dimensiones de ventana. La idea que primero viene a mente es aumentar el tamaño de la ventana, haciendo un barrido a toda la imagen con estas variaciones. 
+Sin embargo, por las complicaciones que supondría la diferencia de tamaños de la ventana con respecto a las imágenes usadas en el entrenamiento, hemos decidido recurrir a una pirámide gaussiana.
+
+Este método consiste en dada una foto, hacer una reducción de ésta, con un factor de reducción y hacer un barrido a cada una de estas producciones con el mismo tamaño de ventana, de forma que una señal que en la imagen anterior (más grande) fuera demasiado grande, en esta quepa.
+
+Con esto obtenemos solapamiento de ventanas en algunas predicciones, que solucionamos con el Non-Maximum Supression mencionado anteriormente y que explicaremos más adelante.
+
+Para poder mostrar la ventana que ha detectado un positivo en la imagen de tamaño original, hacemos uso de una lista en la que guardamos las ventanas con 4 valores para depsués, tras procesar toda la imagen, aplicar NMS (Non-Maximum Supression) y poder mostrarlas.
+Estas 4 características son: el pixel inicial en ambos ejes en proporción al tamaño de la imagen en la que se ha detectado, el tamaño de la ventana (100) en proporción al tamaño de la imagen en la que se ha detectado y la confianza de la predicción.
+Estas proporciones nos sirven para que luego, podamos mostrar las ventanas en la imagen original abarcando lo mismo que en la reducida, simplemente multiplicando este factor de relación por el tamaño de la imagen original.
+
+Podemos apreciar esto en las siguientes imágenes...
+
+![alt text](resources/copiaventana1.jpg)
+![alt text](resources/copiaventana2.jpg)
+![alt text](resources/copiaventana3.jpg)
+![alt text](resources/copiaresultadofinal.jpg)
+
+Conseguimos mostrar las ventanas en su proporción original con la imagen.
 
 
+## Non-Maximum Supression
 
+Al obtener varias ventanas solapadas entre sí debemos quedarnos con una, para ello, primero, tenemos que elegir la que mayor nivel de confianza (probabilidad) nos de. 
+Para cada ventana que haya, calculamos su IOU con respecto a esta ventana de mayor confianza, que es Intersection Over Union.
 
-## Deteccion y clasificacion 
+![alt text](resources/IOU.png)
 
-Una vez tenemos un modelo q nos clasifique los distintos tipos de señales y hemos diseñado un algoritmo que sea capaz de detectar en una imagen donde se encuentra una señal, entonces podemos combinar los dos clasificadores para detectar y clasificar dicha señal.
+Es decir, la proporción intersección/union de ambas ventanas.
+Con un threshold establecido, debemos eliminar todas las ventanas que tengan un IOU superior al threshold.
+Así eliminamos las ventanas que contengan la misma detección y mantenemos las que contengan otro objeto distinto.
+
+## Detección y clasificación 
+
+Una vez tenemos un modelo que nos clasifique los distintos tipos de señales y hemos diseñado un algoritmo que sea capaz de detectar en una imagen donde se encuentra una señal, entonces podemos comenzar a utilizarlo en imágenes completas.
+
+Le pasamos una imagen del conjunto que se nos ha otorgado y obtenemos lo siguiente...
+
+![alt text](resources/fallo.png)
+
+Detecta la señal pero también detecta como señales algunos trozos de cielo y, además, solapadas, para eso necesitamos usar Non-Maximum Supression.
+
+¿Cómo evitar falsos positivos con el cielo? Cogemos esos supuestos aciertos y calculamos la intensidad media de todas estas imágenes (todas de 100x100) y ponemos como umbral este valor para filtrar. Al procesar cada ventana si la intensidad media es mayor o igual a este umbral, se omite.
+
+Tras aplicar estos cambios, obtenemos mejores resultados:
+
+![alt text](resources/acierto.png)
+
+Con el filtro ya descartamos todo el cielo que a veces clasificaba como positivo, y obtenemos solo la clasificación de la señal.
