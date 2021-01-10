@@ -137,7 +137,7 @@ Tras aplicar estos cambios, obtenemos mejores resultados:
 
 | | | |
 |-|-|-|
-![](resources/acierto.png)| ![](resources/acierto2.png) 
+![](resources/acierto.jpg)| ![](resources/acierto2.jpg) 
 
 Con el filtro ya descartamos todo el cielo que a veces clasificaba como positivo, y obtenemos solo la clasificación de la señal.
 
