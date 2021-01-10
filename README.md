@@ -52,17 +52,28 @@ clf = GridSearchCV(clf,parameters_dict[clf_name],cv = 2,n_jobs=-1)
 ```
 
 Estos han sido los resultados tanto de precision como de tiempo de entrenamiento de los clasificadores
-
-![alt text](resources/resultados.png)
-![alt text](resources/resultados2.png)
+| | | |
+|-|-|-|
+![](resources/bestScore.jpg)| ![](resources/bestTime.jpg) 
 
 Hemos tomado mejor clasificador finalmente Regresión Logistica ya que hemos obtenido una precisión del 94.2% y tiene un tiempo de entrenamiento razonable. Estos han sido los parametros utilizados
 ```
-
+LogisticRegression(random_state=0,max_iter=400,C=10)
 ```
 Lo guardamos en nuestro repositorio usando [pickle](https://docs.python.org/3/library/pickle.html) de este esta manera tenemos el objeto estimador guardado en disco sin necesidad de tener que volver a crear los datasets,entrenar y calcular el mejor.
 ```
+#Guardamos el mejor clasificador en disco para utilizarlo mas adelante
+import pickle
 
+# save the classifier
+short_clf_names = ['SVM','RegLog','NBGauss','DecTree','RedNeu']
+ds_type = '_'+Best_dataset
+classifier_name = 'sign_classifier_'+short_clf_names[best_score]+ds_type+'.pkl'
+try:
+    open(classifier_name, 'rb')
+except:
+    with open(classifier_name, 'wb') as f:
+        pickle.dump(Best_clf, f)
 ```
 ## Estrategia deteccion:
 
@@ -70,7 +81,7 @@ A partir de las imagenes en [dataset_images](dataset/images) hemos creado otro d
 
 Posteriormente con el clasificador ya entrenado vamos a aplicar un algoritmo de ventana deslizante junto a una piramide gaussiana. Usaremos las imagenes completas de [dataset_images](dataset/images). 
 
-De primeras entrenamos una SVM que nos ofrecia bastantes buenos resultados y nos detectaba las señales con precisión pero nos dimos cuenta de que nos podía detectar una misma señal multiples veces al aplicar la ventana deslizante. Por ello decidimos aplicar Non-Maximum Supression para eliminar las detecciones multiples, para ello cambiamos el modelo de detección por un clasificador probabilístico que nos permitiera quedarnos con las ventanas con mayor probabilidad de su clase señal. Finalmente nos hemos quedado con un clasificador multinomial Naive Bayes de Sklearn.
+De primeras entrenamos una SVM que nos ofrecia bastantes buenos resultados y nos detectaba las señales con precisión pero nos dimos cuenta de que nos podía detectar una misma señal multiples veces al aplicar la ventana deslizante. Por ello decidimos aplicar Non-Maximum Supression para eliminar las detecciones multiples, para ello cambiamos el modelo de detección por un clasificador probabilístico que nos permitiera quedarnos con las ventanas con mayor probabilidad de su clase señal. Finalmente nos hemos quedado con un clasificador Naive Bayes de Sklearn.
 
 ## Pirámide gaussiana + ventana deslizante
 
@@ -78,6 +89,8 @@ Debido a la necesidad de barrer toda la imagen en busca de señales hemos hecho 
 
 Ahora bien, un problema que surge es que haya en la foto una señal tan grande como para que no sea detectada con esas dimensiones de ventana. La idea que primero viene a mente es aumentar el tamaño de la ventana, haciendo un barrido a toda la imagen con estas variaciones. 
 Sin embargo, por las complicaciones que supondría la diferencia de tamaños de la ventana con respecto a las imágenes usadas en el entrenamiento, hemos decidido recurrir a una pirámide gaussiana.
+
+![](resources/Pyramids_Tutorial_Pyramid_Theory.png)
 
 Este método consiste en dada una foto, hacer una reducción de ésta, con un factor de reducción y hacer un barrido a cada una de estas producciones con el mismo tamaño de ventana, de forma que una señal que en la imagen anterior (más grande) fuera demasiado grande, en esta quepa.
 
@@ -89,10 +102,10 @@ Estas proporciones nos sirven para que luego, podamos mostrar las ventanas en la
 
 Podemos apreciar esto en las siguientes imágenes...
 
-![alt text](resources/copiaventana1.jpg)
-![alt text](resources/copiaventana2.jpg)
-![alt text](resources/copiaventana3.jpg)
-![alt text](resources/copiaresultadofinal.jpg)
+| | | |
+|-|-|-|
+![](resources/copiaventana1.jpg)| ![](resources/copiaventana2.jpg) 
+![](resources/copiaventana3.jpg)  |  ![](resources/copiaresultadofinal.jpg)
 
 Conseguimos mostrar las ventanas en su proporción original con la imagen.
 
@@ -102,7 +115,7 @@ Conseguimos mostrar las ventanas en su proporción original con la imagen.
 Al obtener varias ventanas solapadas entre sí debemos quedarnos con una, para ello, primero, tenemos que elegir la que mayor nivel de confianza (probabilidad) nos de. 
 Para cada ventana que haya, calculamos su IOU con respecto a esta ventana de mayor confianza, que es Intersection Over Union.
 
-![alt text](resources/IOU.png)
+![alt text](resources/IOU.png) 
 
 Es decir, la proporción intersección/union de ambas ventanas.
 Con un threshold establecido, debemos eliminar todas las ventanas que tengan un IOU superior al threshold.
@@ -122,6 +135,11 @@ Detecta la señal pero también detecta como señales algunos trozos de cielo y,
 
 Tras aplicar estos cambios, obtenemos mejores resultados:
 
-![alt text](resources/acierto.png)
-
+| | | |
+|-|-|-|
+![](resources/acierto.png)| ![](resources/acierto2.png) 
 Con el filtro ya descartamos todo el cielo que a veces clasificaba como positivo, y obtenemos solo la clasificación de la señal.
+
+### COMBINACION DE DETECCION Y CLASIFICACION
+
+Por motivos de tiempo no hemos sido capaces de terminar la parte opcional pero una vez tenemos montados los 2 clasificadores de deteccion y clasificador seria sencillo pasar el resultado de la deteccion a la clasificacion pero debido a que teniamos muchos falsos positivos hemos querido priorizar mejorar las 2 primeras fases del proyecto.
