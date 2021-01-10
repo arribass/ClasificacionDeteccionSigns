@@ -20,101 +20,61 @@ Para clasificar las señales usaremos:
 - Red Neuronal (MLPClassifier)
 
 Todos ellos de las librerias de [sklearn](https://scikit-learn.org/stable/)
-### Algoritmo HOG
+### HISTOGRAM ORIENTED GRADIENT (HOG)
 
-A partir de cada clasificador hemos conseguido los siguientes resultados:
+El algoritmo HOG es un metodo de extraccion de caracteristicas que nos permite transformar los pixeles por gradientes que nos indican hacia donde se orientan los cambios de intensidad de dichos pixeles. Esto es muy util porque nos permite obtener caracteristicas muy representativas de una imagen y que nos serviran para comparar con otras similares, ya sean caras, señales de tráfico, etc...
 
+Hemos definido un conjunto de clasificadores y entrenarlos para quedarnos con el mejor resultado:
+```
+classifiers = [ SVC(),
+                LogisticRegression(random_state=0,max_iter=400),
+                GaussianNB(),
+                DecisionTreeClassifier(),
+                MLPClassifier()]
 
-
-Hemos probado a definir un conjunto de clasificadores y entrenarlos para quedarnos con el mejor resultado. El codigo es el siguiente:
+clf_names = ['SVM', 'Regr Logistica', 'NB Gaussiano','Decision Tree','Red Neuronal']
+```
 Para ello tambien hemos usado GridSearchCV para obtener el mejor ajuste de los paremtros de los clasificadores
 
 ```
-nombresDatasets = ['non_processed','processed']
-datasets = {}
-
-for nombre in nombresDatasets:
-    pathTrain = 'train_img_features_'+nombre+'.npy'
-    pathTest = 'test_img_features_'+nombre+'.npy'
-    
-    dataTrain = np.load(pathTrain)
-    Xtrain = dataTrain[:,:-1]
-    ytrain = dataTrain[:,-1]
-    
-    dataTest = np.load(pathTest)
-    Xtest = dataTest[:,:-1]
-    ytest = dataTest[:,-1]
-    
-    datasets[nombre] = (Xtrain,ytrain,Xtest,ytest)
-
-#Definimos un conjunto de clasificadores
-classifiers = [
-    SVC(),
-    LogisticRegression(random_state=0,max_iter=400),
-    GaussianNB(),
-    DecisionTreeClassifier(),
-    MLPClassifier()]
-
-clf_names = ['SVM', 'Regr Logistica', 'NB Gaussiano','Decision Tree','Red Neuronal']
-
-score_list = []
-time_list = []
-aux_params = []
-Best_score = np.NINF
-
-#Definimos un diccionario con diccionarios para los parametergrids de GridSearchCV
 parameters_dict = {'SVM':{'kernel':('linear', 'rbf'), 'C':[1, 10],'gamma':[0.1,0.001]},
-                    'Regr Logistica':{'C': [0.01, 1, 10, 1000] },
-                    'NB Gaussiano':{'var_smoothing': np.logspace(0,-9, num=10)},
-                    'Decision Tree':{'min_samples_split': [2, 3, 4],
+                   'Regr Logistica':{'C': [0.01, 1, 10, 1000] },
+                   'NB Gaussiano':{'var_smoothing': np.logspace(0,-9, num=10)},
+                   'Decision Tree':{'min_samples_split': [2, 3, 4],
                                      'criterion': ['gini', 'entropy']},
-                    'Red Neuronal':{'activation': ['tanh', 'relu'],
+                   'Red Neuronal':{'activation': ['tanh', 'relu'],
                                     'solver': ['sgd', 'adam']}
-                   }
-#Probamos los clasificadores
-for i,(clf_aux,clf_name) in enumerate(zip(classifiers,clf_names)):
-    for j,dataset in enumerate(nombresDatasets):
-        #Clonamos el clasificador ya que lo vamos a usar 2 veces
-        clf = clone(clf_aux)
-        
-        #Extraemos los datos de train y test
-        print('Entrenando {} con {}'.format(dataset,clf_name))
-        (Xtrain,ytrain,Xtest,ytest) = datasets[dataset]
-        
-        #Calculamos los parametros optimos con GridSearchCV
-        t0 = time.time()
-        clf = GridSearchCV(clf,parameters_dict[clf_name],cv = 2,n_jobs=-1)
-        clf.fit(Xtrain,ytrain)
-        t1 = time.time()
-        time_list.append(round(t1-t0),2)
-        
-        #Calculamos la precision, la guardamos y vemos si hemos mejorado
-        score = round(clf.score(Xtest,ytest)*100,2)
-        score_list.append(score)
-        aux_params.append(clf.best_params_)
-
-        if score >= Best_score:
-            Best_score = score
-            Best_dataset = dataset
-            Best_clf = clf
-            nBest_clf = i*2 +j
-        print('Time elapsed on fit: {}\n'.format(round(t1-t0,2)))
-print('Total time elapsed {}'.format(round(np.sum(time_list),2)))
+                  }
 ```
-Importante resaltar tambien el parametro cv que hemos tenido que ajustar 'cv = 2' ya que para determinadas clases no habia suficientes ejemplos y no se podía realizar la validación cruzada.
+Importante resaltar tambien el parametro cv que hemos tenido que ajustar 'cv = 2' ya que para determinadas clases no habia suficientes ejemplos y no se podía realizar la validación cruzada y el parametro n_jobs que hace trabajar al procesador en paralelo para poder entrenar mas rápido.
+```
+clf = GridSearchCV(clf,parameters_dict[clf_name],cv = 2,n_jobs=-1)
+```
 
 Estos han sido los resultados tanto de precision como de tiempo de entrenamiento de los clasificadores
 
 ![alt text](resources/resultados.png)
 ![alt text](resources/resultados2.png)
 
-Hemos tomado mejor clasificador finalmente MLPClassifier con los siguientes parametros y lo guardamos en nuestro repositorio usando [pickle](https://docs.python.org/3/library/pickle.html) de este esta manera tenemos el objeto estimador guardado en disco sin necesidad de tener que volver a crear los datasets,entrenar y calcular el mejor.
+Hemos tomado mejor clasificador finalmente Regresión Logistica ya que hemos obtenido una precisión del 94.2% y tiene un tiempo de entrenamiento razonable. Estos han sido los parametros utilizados
+```
 
+```
+Lo guardamos en nuestro repositorio usando [pickle](https://docs.python.org/3/library/pickle.html) de este esta manera tenemos el objeto estimador guardado en disco sin necesidad de tener que volver a crear los datasets,entrenar y calcular el mejor.
+```
+
+```
 ## Estrategia deteccion:
 
 A partir de las imagenes en [dataset_images](dataset/images) hemos creado otro dataset: [dataset_cropped_images](dataset/images) con imagenes de tamaño 100x100 para entrenar otro clasificador que nos determine si dicha imagen es o no una señal
 
-Posteriormente con el clasificador ya entrenado vamos a aplicar un algoritmo de ventana deslizante. Usaremos las imagenes completas de [dataset_images](dataset/images)
+Posteriormente con el clasificador ya entrenado vamos a aplicar un algoritmo de ventana deslizante. Usaremos las imagenes completas de [dataset_images](dataset/images). 
+
+De primeras entrenamos una SVM que nos ofrecia bastantes buenos resultados y nos detectaba las señales con precisión pero nos dimos cuenta de que nos podía detectar una misma señal multiples veces al aplicar la ventana deslizante. Por ello decidimos aplicar Non-Maximum Supression para eliminar las detecciones multiples, para ello cambiamos el modelo de detección por un clasificador probabilístico que nos permitiera quedarnos con las ventanas con mayor probabilidad de su clase señal. Finalmente nos hemos quedado con un MLP-Classifier de Sklearn.
+
+
 
 
 ## Deteccion y clasificacion 
+
+Una vez tenemos un modelo q nos clasifique los distintos tipos de señales y hemos diseñado un algoritmo que sea capaz de detectar en una imagen donde se encuentra una señal, entonces podemos combinar los dos clasificadores para detectar y clasificar dicha señal.
