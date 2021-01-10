@@ -81,7 +81,7 @@ A partir de las imagenes en [dataset_images](dataset/images) hemos creado otro d
 
 Posteriormente con el clasificador ya entrenado vamos a aplicar un algoritmo de ventana deslizante junto a una piramide gaussiana. Usaremos las imagenes completas de [dataset_images](dataset/images). 
 
-De primeras entrenamos una SVM que nos ofrecia bastantes buenos resultados y nos detectaba las señales con precisión pero nos dimos cuenta de que nos podía detectar una misma señal multiples veces al aplicar la ventana deslizante. Por ello decidimos aplicar Non-Maximum Supression para eliminar las detecciones multiples, para ello cambiamos el modelo de detección por un clasificador probabilístico que nos permitiera quedarnos con las ventanas con mayor probabilidad de su clase señal. Finalmente nos hemos quedado con un clasificador Naive Bayes de Sklearn.
+De primeras entrenamos una SVM que nos ofrecia bastantes buenos resultados y nos detectaba las señales con precisión pero nos dimos cuenta de que nos podía detectar una misma señal multiples veces al aplicar la ventana deslizante. Por ello decidimos aplicar Non-Maximum Supression para eliminar las detecciones multiples, para ello cambiamos el modelo de detección por un clasificador probabilístico que nos permitiera quedarnos con las ventanas con mayor probabilidad de su clase señal. Finalmente nos hemos quedado con un clasificador Naive Bayes de Sklearn aunque podriamos haber usado otro.
 
 ## Pirámide gaussiana + ventana deslizante
 
@@ -138,6 +138,7 @@ Tras aplicar estos cambios, obtenemos mejores resultados:
 | | | |
 |-|-|-|
 ![](resources/acierto.png)| ![](resources/acierto2.png) 
+
 Con el filtro ya descartamos todo el cielo que a veces clasificaba como positivo, y obtenemos solo la clasificación de la señal.
 
 ### COMBINACION DE DETECCION Y CLASIFICACION
